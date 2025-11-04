@@ -16,7 +16,7 @@ data/
 *.json
 
 # Environnement
-.env
+
 .env.local
 
 # IDE
