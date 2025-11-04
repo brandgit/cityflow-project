@@ -134,6 +134,90 @@ class S3Service:
             self.s3 = None
             print("⚠ Mode simulation S3 (boto3 non disponible)")
     
+    def read_json_from_s3(self, key: str) -> Optional[Dict]:
+        """
+        Lit un fichier JSON ou JSONL directement depuis S3
+        
+        Args:
+            key: Clé S3 du fichier
+        
+        Returns:
+            Dict avec les données ou None
+        """
+        if not self.s3:
+            return None
+        try:
+            response = self.s3.get_object(Bucket=self.bucket_name, Key=key)
+            content = response['Body'].read().decode('utf-8')
+            
+            # Si JSONL (JSON Lines), lire ligne par ligne
+            if key.endswith('.jsonl'):
+                lines = content.strip().split('\n')
+                data = []
+                for line in lines:
+                    if line.strip():
+                        data.append(json.loads(line))
+                # Retourner au format attendu
+                return {"data": data} if data else None
+            else:
+                # JSON normal
+                return json.loads(content)
+        except Exception as e:
+            print(f"⚠ Erreur lecture S3 {key}: {e}")
+            return None
+    
+    def read_csv_from_s3(self, key: str) -> Optional[str]:
+        """
+        Lit un fichier CSV directement depuis S3
+        
+        Args:
+            key: Clé S3 du fichier
+        
+        Returns:
+            Contenu CSV en string ou None
+        """
+        if not self.s3:
+            return None
+        try:
+            response = self.s3.get_object(Bucket=self.bucket_name, Key=key)
+            content = response['Body'].read().decode('utf-8-sig')
+            return content
+        except Exception as e:
+            print(f"⚠ Erreur lecture S3 {key}: {e}")
+            return None
+    
+    def list_files_in_s3(self, prefix: str, extension: str = None) -> List[str]:
+        """
+        Liste les fichiers dans un préfixe S3
+        
+        Args:
+            prefix: Préfixe S3 (ex: "cityflow-raw/raw/batch/")
+            extension: Extension optionnelle (ex: ".csv", ".jsonl")
+        
+        Returns:
+            Liste des clés S3
+        """
+        if not self.s3:
+            return []
+        try:
+            response = self.s3.list_objects_v2(Bucket=self.bucket_name, Prefix=prefix)
+            if 'Contents' not in response:
+                return []
+            
+            files = [obj['Key'] for obj in response['Contents']]
+            
+            # Filtrer par extension si spécifié
+            if extension:
+                files = [f for f in files if f.endswith(extension)]
+            
+            # Exclure les "dossiers" (clés se terminant par /)
+            files = [f for f in files if not f.endswith('/')]
+            
+            return files
+        except Exception as e:
+            print(f"⚠ Erreur listage S3 {prefix}: {e}")
+            return []
+    
     def upload_file(self, local_path: str, s3_key: str, content_type: Optional[str] = None) -> bool:
         """
         Upload un fichier vers S3

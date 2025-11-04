@@ -127,6 +127,137 @@ def load_raw_data(config) -> Dict[str, Any]:
     return raw_data
 
 
+def load_raw_data_from_s3(config) -> Dict[str, Any]:
+    """
+    Charge les données directement depuis S3
+    
+    Args:
+        config: Configuration
+    
+    Returns:
+        Dict avec données par type
+    """
+    import os
+    import tempfile
+    from utils.aws_services import S3Service
+    
+    raw_data = {}
+    
+    # Configuration S3
+    bucket_name = os.getenv("S3_RAW_BUCKET", "bucket-cityflow-paris-s3-raw")
+    prefix = os.getenv("S3_RAW_PREFIX", "cityflow-raw/raw")
+    
+    print(f"📦 S3 Bucket: {bucket_name}")
+    print(f"📦 S3 Prefix: {prefix}")
+    
+    s3_service = S3Service(bucket_name)
+    
+    try:
+        # Charger données API (JSON/JSONL)
+        # Bikes
+        bikes_files = s3_service.list_files_in_s3(f"{prefix}/api/bikes/", ".jsonl")
+        if not bikes_files:
+            bikes_files = s3_service.list_files_in_s3(f"{prefix}/api/bikes/", ".json")
+        
+        if bikes_files:
+            print(f"📁 Trouvé {len(bikes_files)} fichier(s) bikes dans S3")
+            bikes_data = []
+            for file_key in bikes_files:
+                data = s3_service.read_json_from_s3(file_key)
+                if data:
+                    bikes_data.append(data)
+            
+            # Combiner toutes les données
+            if bikes_data:
+                combined = {"data": []}
+                for d in bikes_data:
+                    if "data" in d:
+                        if isinstance(d["data"], list):
+                            combined["data"].extend(d["data"])
+                        else:
+                            combined["data"].append(d["data"])
+                raw_data["bikes"] = combined
+        
+        # Traffic
+        traffic_files = s3_service.list_files_in_s3(f"{prefix}/api/traffic/", ".jsonl")
+        if not traffic_files:
+            traffic_files = s3_service.list_files_in_s3(f"{prefix}/api/traffic/", ".json")
+        
+        if traffic_files:
+            print(f"📁 Trouvé {len(traffic_files)} fichier(s) traffic dans S3")
+            # Combiner tous les fichiers traffic
+            all_disruptions = []
+            for file_key in traffic_files:
+                data = s3_service.read_json_from_s3(file_key)
+                if data and "data" in data:
+                    items = data["data"] if isinstance(data["data"], list) else [data["data"]]
+                    for item in items:
+                        if "disruptions" in item:
+                            all_disruptions.extend(item["disruptions"])
+            
+            if all_disruptions:
+                raw_data["traffic"] = {"disruptions": all_disruptions}
+        
+        # Weather
+        weather_files = s3_service.list_files_in_s3(f"{prefix}/api/weather/", ".jsonl")
+        if not weather_files:
+            weather_files = s3_service.list_files_in_s3(f"{prefix}/api/weather/", ".json")
+        
+        if weather_files:
+            print(f"📁 Trouvé {len(weather_files)} fichier(s) weather dans S3")
+            data = s3_service.read_json_from_s3(weather_files[0])
+            if data:
+                raw_data["weather"] = data
+        
+        # Charger données BATCH (CSV) - Téléchargement temporaire pour traitement
+        # Les CSV sont trop volumineux pour être chargés en mémoire, on les télécharge temporairement
+        
+        # Comptages
+        comptages_files = s3_service.list_files_in_s3(f"{prefix}/batch/", ".csv")
+        comptages_files = [f for f in comptages_files if "comptages" in f.lower()]
+        if comptages_files:
+            print(f"📁 Trouvé {len(comptages_files)} fichier(s) comptages dans S3 ({comptages_files[0]})")
+            print(f"  → Téléchargement temporaire (fichier volumineux)...")
+            with tempfile.NamedTemporaryFile(mode='w', suffix='.csv', delete=False) as tmp:
+                content = s3_service.read_csv_from_s3(comptages_files[0])
+                if content:
+                    tmp.write(content)
+                    tmp.flush()
+                    raw_data["comptages"] = tmp.name
+                    print(f"  ✅ Fichier temporaire: {tmp.name}")
+        
+        # Chantiers
+        chantiers_files = s3_service.list_files_in_s3(f"{prefix}/batch/", ".csv")
+        chantiers_files = [f for f in chantiers_files if "chantiers" in f.lower()]
+        if chantiers_files:
+            print(f"📁 Trouvé {len(chantiers_files)} fichier(s) chantiers dans S3")
+            with tempfile.NamedTemporaryFile(mode='w', suffix='.csv', delete=False) as tmp:
+                content = s3_service.read_csv_from_s3(chantiers_files[0])
+                if content:
+                    tmp.write(content)
+                    tmp.flush()
+                    raw_data["chantiers"] = tmp.name
+        
+        # Référentiel
+        referentiel_files = s3_service.list_files_in_s3(f"{prefix}/batch/", ".csv")
+        referentiel_files = [f for f in referentiel_files if "referentiel" in f.lower() or "geographique" in f.lower()]
+        if referentiel_files:
+            print(f"📁 Trouvé {len(referentiel_files)} fichier(s) référentiel dans S3")
+            with tempfile.NamedTemporaryFile(mode='w', suffix='.csv', delete=False) as tmp:
+                content = s3_service.read_csv_from_s3(referentiel_files[0])
+                if content:
+                    tmp.write(content)
+                    tmp.flush()
+                    raw_data["referentiel"] = tmp.name
+    
+    except Exception as e:
+        print(f"⚠ Erreur chargement depuis S3: {e}")
+        import traceback
+        traceback.print_exc()
+    
+    return raw_data
+
+
 def initialize_processors(config) -> Dict[str, Any]:
     """
     Initialise tous les processeurs
