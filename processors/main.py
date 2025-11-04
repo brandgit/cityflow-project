@@ -35,7 +35,8 @@ from utils.metrics_optimizer import should_optimize_for_mongodb, optimize_metric
 
 def load_raw_data(config) -> Dict[str, Any]:
     """
-    Charge les données brutes depuis S3 (si AWS) ou fichiers locaux
+    Charge les données brutes depuis fichiers locaux
+    (Sur EC2, les fichiers doivent être uploadés manuellement dans data/)
     
     Args:
         config: Configuration
@@ -43,20 +44,8 @@ def load_raw_data(config) -> Dict[str, Any]:
     Returns:
         Dict avec toutes les données brutes par type
     """
-    import os
-    
-    # FORCER la lecture depuis S3 en production
-    # Détection : si on est sur EC2 (pas de bucket-cityflow local)
-    local_bucket = Path("bucket-cityflow-paris-s3-raw")
-    
-    if not local_bucket.exists():
-        # On est sur EC2 → Lire depuis S3
-        print("📦 Chargement des données depuis S3 (mode EC2)...")
-        return load_raw_data_from_s3(config)
-    else:
-        # On est en local → Lire depuis fichiers
-        print("📁 Chargement des données depuis fichiers locaux...")
-        return load_raw_data_local(config)
+    print("📁 Chargement des données depuis fichiers locaux...")
+    return load_raw_data_local(config)
 
 
 def load_raw_data_local(config) -> Dict[str, Any]:

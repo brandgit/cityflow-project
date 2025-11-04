@@ -1,6 +1,6 @@
 """
 Factory pour choisir automatiquement le service de base de données
-selon l'environnement (MongoDB local ou DynamoDB production)
+selon l'environnement (MongoDB local ou Fichiers JSON sur EC2)
 """
 
 import os
@@ -13,25 +13,25 @@ def get_database_service() -> DatabaseService:
     selon l'environnement et la configuration
     
     Logique de sélection:
-    1. Si AWS_EXECUTION_ENV existe → DynamoDB (Lambda/EC2)
-    2. Si DATABASE_TYPE=dynamodb → DynamoDB
-    3. Sinon → MongoDB (développement local)
+    1. Si pas de bucket local → EC2 → Fichiers JSON locaux
+    2. Sinon → MongoDB (développement local)
+    
+    Note: Sur EC2, les données seront stockées en JSON puis chargées manuellement vers AWS
     
     Returns:
-        Instance de DatabaseService (MongoDB ou DynamoDB)
+        Instance de DatabaseService (MongoDB ou LocalFileService)
     
     Raises:
         ImportError: Si la librairie requise n'est pas disponible
-        ValueError: Si DATABASE_TYPE est invalide
     """
-    # DÉTECTION AUTOMATIQUE EN DUR
-    # Si pas de bucket local → on est sur EC2 → DynamoDB
+    # DÉTECTION AUTOMATIQUE
+    # Si pas de bucket local → on est sur EC2 → Fichiers JSON
     from pathlib import Path
     local_bucket = Path("bucket-cityflow-paris-s3-raw")
     
     if not local_bucket.exists():
-        db_type = "dynamodb"
-        print("🌐 Détection EC2 → utilisation DynamoDB")
+        db_type = "local_files"
+        print("🌐 Détection EC2 → utilisation Fichiers JSON locaux")
     else:
         db_type = "mongodb"
         print("💻 Détection Local → utilisation MongoDB")
@@ -49,29 +49,26 @@ def get_database_service() -> DatabaseService:
             print(f"✗ Erreur: {e}")
             print("\n💡 Pour utiliser MongoDB, installer pymongo:")
             print("   pip install pymongo")
-            print("\n💡 Ou basculer vers DynamoDB:")
-            print("   DATABASE_TYPE=dynamodb dans .env")
+            print("\n💡 Alternative: utiliser fichiers JSON locaux")
+            print("   Supprimez le dossier bucket-cityflow-paris-s3-raw")
             raise
     
-    elif db_type == "dynamodb":
+    elif db_type == "local_files":
         print("=" * 60)
-        print("☁️  Base de données: DynamoDB (production AWS)")
+        print("📁 Stockage: Fichiers JSON locaux (EC2)")
         print("=" * 60)
         
         try:
-            from utils.dynamodb_service_adapter import DynamoDBServiceAdapter
-            return DynamoDBServiceAdapter()
+            from utils.local_file_service import LocalFileService
+            return LocalFileService()
         except ImportError as e:
             print(f"✗ Erreur: {e}")
-            print("\n💡 Pour utiliser DynamoDB, installer boto3:")
-            print("   pip install boto3")
             raise
     
     else:
         raise ValueError(
             f"Type de base de données inconnu: {db_type}\n"
-            f"Valeurs valides: 'mongodb', 'dynamodb'\n"
-            f"Configurez DATABASE_TYPE dans .env"
+            f"Valeurs valides: 'mongodb', 'local_files'"
         )
 
 
@@ -80,14 +77,15 @@ def get_database_type() -> str:
     Retourne le type de base de données configuré
     
     Returns:
-        'mongodb' ou 'dynamodb'
+        'mongodb' ou 'local_files'
     """
-    db_type = os.getenv("DATABASE_TYPE", "mongodb").lower()
+    from pathlib import Path
+    local_bucket = Path("bucket-cityflow-paris-s3-raw")
     
-    if os.getenv("AWS_EXECUTION_ENV") or os.getenv("USE_DYNAMODB", "false").lower() == "true":
-        db_type = "dynamodb"
-    
-    return db_type
+    if not local_bucket.exists():
+        return "local_files"
+    else:
+        return "mongodb"
 
 
 def test_database_connection() -> bool:
