@@ -35,7 +35,30 @@ from utils.metrics_optimizer import should_optimize_for_mongodb, optimize_metric
 
 def load_raw_data(config) -> Dict[str, Any]:
     """
-    Charge toutes les données brutes depuis les fichiers
+    Charge les données brutes depuis S3 (si AWS) ou fichiers locaux
+    
+    Args:
+        config: Configuration
+    
+    Returns:
+        Dict avec toutes les données brutes par type
+    """
+    import os
+    
+    # Détecter si on doit utiliser S3
+    use_s3 = os.getenv("USE_S3", "false").lower() == "true" or os.getenv("AWS_EXECUTION_ENV")
+    
+    if use_s3:
+        print("📦 Chargement des données depuis S3...")
+        return load_raw_data_from_s3(config)
+    else:
+        print("📁 Chargement des données depuis fichiers locaux...")
+        return load_raw_data_local(config)
+
+
+def load_raw_data_local(config) -> Dict[str, Any]:
+    """
+    Charge les données depuis fichiers locaux
     
     Args:
         config: Configuration
