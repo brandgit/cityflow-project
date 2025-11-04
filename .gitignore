@@ -1,0 +1,48 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+
+# Données locales (ne pas pusher sur Git)
+output/
+bucket-cityflow-paris-s3-raw/
+data/
+*.csv
+*.json
+
+# Environnement
+.env
+.env.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+
+# Temporary
+tmp/
+temp/
+*.tmp
+
+# Dashboard cache
+.streamlit/
+
+# Test files
+test_*.py
+*_test.py
+

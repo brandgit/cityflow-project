@@ -1,0 +1,27 @@
+# Requirements pour CityFlow Analytics
+
+# Utilitaires dates (optionnel mais recommandé)
+python-dateutil>=2.8.2
+
+# Jours fériés (optionnel)
+holidays>=0.34
+
+# Base de données
+# MongoDB (développement local)
+pymongo>=4.6.0
+
+# AWS SDK (production)
+boto3>=1.28.0
+
+# Chargement des variables d'environnement depuis .env
+python-dotenv>=1.0.0
+
+# API REST (développement local uniquement)
+# Note: Flask n'est PAS nécessaire pour Lambda
+flask>=3.0.0
+flask-cors>=4.0.0
+
+# Dashboard Streamlit
+streamlit>=1.28.0
+plotly>=5.18.0
+pandas>=2.0.0

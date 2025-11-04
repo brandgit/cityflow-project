@@ -1,0 +1,58 @@
+# Variables d'environnement pour CityFlow Analytics
+# Configuration pour développement local
+
+# ============================================
+# Configuration Base de Données
+# ============================================
+# Type: "mongodb" (local) ou "dynamodb" (AWS)
+DATABASE_TYPE=mongodb
+
+# MongoDB (développement local avec MongoDB Compass)
+MONGODB_URL=mongodb://localhost:27017/
+MONGODB_DATABASE=cityflow
+
+# ============================================
+# Configuration AWS (pour production)
+# ============================================
+AWS_REGION=us-east-1
+
+# DynamoDB Tables (production AWS)
+DYNAMODB_METRICS_TABLE=cityflow-metrics
+DYNAMODB_REPORTS_TABLE=cityflow-daily-reports
+
+# S3 Buckets (production AWS)
+S3_REPORTS_BUCKET=cityflow-reports
+S3_REPORTS_PREFIX=reports
+
+# ============================================
+# Chemins de données LOCAUX (développement)
+# Laissez ces lignes commentées pour utiliser les chemins par défaut
+# Le code détecte automatiquement les chemins relatifs depuis settings.py
+# ============================================
+# DATA_DIR=bucket-cityflow-paris-s3-raw/cityflow-raw/raw
+# BATCH_DATA_PATH=bucket-cityflow-paris-s3-raw/cityflow-raw/raw/batch
+# API_DATA_PATH=bucket-cityflow-paris-s3-raw/cityflow-raw/raw/api
+# COMPTAGES_CSV=bucket-cityflow-paris-s3-raw/cityflow-raw/raw/batch/comptages-routiers-permanents-2.csv
+# CHANTIERS_CSV=bucket-cityflow-paris-s3-raw/cityflow-raw/raw/batch/chantiers-perturbants-la-circulation.csv
+# REFERENTIEL_CSV=bucket-cityflow-paris-s3-raw/cityflow-raw/raw/batch/referentiel-geographique-pour-les-donnees-trafic-issues-des-capteurs-permanents.csv
+
+# ============================================
+# Mode de fonctionnement
+# ============================================
+# Forcer l'utilisation de DynamoDB même en local (nécessite boto3 configuré)
+USE_DYNAMODB=false
+
+# Forcer l'utilisation de S3 même en local (nécessite boto3 configuré)
+USE_S3=false
+
+# ============================================
+# Logs
+# ============================================
+LOG_LEVEL=INFO
+
+# ============================================
+# Configuration API (date et heure des données)
+# ============================================
+API_DATE=2025-11-03
+API_HOUR=02
+
