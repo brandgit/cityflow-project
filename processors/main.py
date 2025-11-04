@@ -169,9 +169,9 @@ def load_raw_data_from_s3(config) -> Dict[str, Any]:
     
     raw_data = {}
     
-    # Configuration S3
-    bucket_name = os.getenv("S3_RAW_BUCKET", "bucket-cityflow-paris-s3-raw")
-    prefix = os.getenv("S3_RAW_PREFIX", "cityflow-raw/raw")
+    # Configuration S3 EN DUR (plus besoin de .env)
+    bucket_name = "bucket-cityflow-paris-s3-raw"
+    prefix = "cityflow-raw/raw"
     
     print(f"📦 S3 Bucket: {bucket_name}")
     print(f"📦 S3 Prefix: {prefix}")
