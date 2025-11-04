@@ -24,17 +24,17 @@ def get_database_service() -> DatabaseService:
         ImportError: Si la librairie requise n'est pas disponible
         ValueError: Si DATABASE_TYPE est invalide
     """
-    # Vérifier variable d'environnement DATABASE_TYPE
-    db_type = os.getenv("DATABASE_TYPE", "mongodb").lower()
+    # DÉTECTION AUTOMATIQUE EN DUR
+    # Si pas de bucket local → on est sur EC2 → DynamoDB
+    from pathlib import Path
+    local_bucket = Path("bucket-cityflow-paris-s3-raw")
     
-    # En production AWS, forcer DynamoDB
-    if os.getenv("AWS_EXECUTION_ENV"):
+    if not local_bucket.exists():
         db_type = "dynamodb"
-        print("🌐 Environnement AWS détecté → utilisation DynamoDB")
-    
-    # Forcer DynamoDB si USE_DYNAMODB=true
-    if os.getenv("USE_DYNAMODB", "false").lower() == "true":
-        db_type = "dynamodb"
+        print("🌐 Détection EC2 → utilisation DynamoDB")
+    else:
+        db_type = "mongodb"
+        print("💻 Détection Local → utilisation MongoDB")
     
     # Instancier le service approprié
     if db_type == "mongodb":
