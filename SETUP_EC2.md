@@ -98,25 +98,25 @@ export EC2_HOST="ec2-user@<votre-ip-ec2>"
 export KEY_PATH="<chemin-vers-votre-cle.pem>"
 
 # Créer la structure de dossiers sur EC2
-ssh -i $KEY_PATH $EC2_HOST "mkdir -p /home/ec2-user/cityflow-project/data/{batch,api/bikes,api/traffic,api/weather}"
+ssh -i $KEY_PATH $EC2_HOST "mkdir -p /home/ec2-user/cityflow-project/data/cityflow-raw/raw/{batch,api/bikes,api/traffic,api/weather}"
 
 # Uploader les fichiers CSV (batch)
 scp -i $KEY_PATH \
     bucket-cityflow-paris-s3-raw/cityflow-raw/raw/batch/*.csv \
-    $EC2_HOST:/home/ec2-user/cityflow-project/data/batch/
+    $EC2_HOST:/home/ec2-user/cityflow-project/data/cityflow-raw/raw/batch/
 
 # Uploader les fichiers API
 scp -i $KEY_PATH -r \
     bucket-cityflow-paris-s3-raw/cityflow-raw/raw/api/bikes/dt=2025-11-04 \
-    $EC2_HOST:/home/ec2-user/cityflow-project/data/api/bikes/
+    $EC2_HOST:/home/ec2-user/cityflow-project/data/cityflow-raw/raw/api/bikes/
 
 scp -i $KEY_PATH -r \
     bucket-cityflow-paris-s3-raw/cityflow-raw/raw/api/traffic/dt=2025-11-04 \
-    $EC2_HOST:/home/ec2-user/cityflow-project/data/api/traffic/
+    $EC2_HOST:/home/ec2-user/cityflow-project/data/cityflow-raw/raw/api/traffic/
 
 scp -i $KEY_PATH -r \
     bucket-cityflow-paris-s3-raw/cityflow-raw/raw/api/weather/dt=2025-11-04 \
-    $EC2_HOST:/home/ec2-user/cityflow-project/data/api/weather/
+    $EC2_HOST:/home/ec2-user/cityflow-project/data/cityflow-raw/raw/api/weather/
 ```
 
 ### Option B : Via S3 comme Stockage Intermédiaire (Pour gros fichiers)
@@ -134,15 +134,15 @@ aws s3 cp bucket-cityflow-paris-s3-raw/cityflow-raw/raw/api/ \
 # 2. Sur EC2, télécharger depuis S3
 ssh -i $KEY_PATH $EC2_HOST << 'EOF'
 cd /home/ec2-user/cityflow-project
-mkdir -p data/{batch,api}
+mkdir -p data/cityflow-raw/raw/{batch,api}
 
 # Télécharger les fichiers batch
-aws s3 cp s3://bucket-cityflow-paris-s3-raw/cityflow-raw/raw/batch/ \
-    data/batch/ --recursive
+aws s3 sync s3://bucket-cityflow-paris-s3-raw/cityflow-raw/raw/batch/ \
+    data/cityflow-raw/raw/batch/ --recursive
 
 # Télécharger les fichiers API
-aws s3 cp s3://bucket-cityflow-paris-s3-raw/cityflow-raw/raw/api/ \
-    data/api/ --recursive
+aws s3 sync s3://bucket-cityflow-paris-s3-raw/cityflow-raw/raw/api/ \
+    data/cityflow-raw/raw/api/ --recursive
 EOF
 ```
 
@@ -226,10 +226,10 @@ Sur EC2, exécutez ces commandes pour vérifier :
 
 ```bash
 # Vérifier que les fichiers sont bien présents
-ls -lh /home/ec2-user/cityflow-project/data/batch/
-ls -lh /home/ec2-user/cityflow-project/data/api/bikes/
-ls -lh /home/ec2-user/cityflow-project/data/api/traffic/
-ls -lh /home/ec2-user/cityflow-project/data/api/weather/
+ls -lh /home/ec2-user/cityflow-project/data/cityflow-raw/raw/batch/
+ls -lh /home/ec2-user/cityflow-project/data/cityflow-raw/raw/api/bikes/
+ls -lh /home/ec2-user/cityflow-project/data/cityflow-raw/raw/api/traffic/
+ls -lh /home/ec2-user/cityflow-project/data/cityflow-raw/raw/api/weather/
 
 # Vérifier boto3
 python3 << 'EOF'

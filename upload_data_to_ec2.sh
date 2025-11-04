@@ -103,10 +103,10 @@ echo ""
 
 info "Création de la structure de dossiers sur EC2..."
 ssh -i "$KEY_PATH" "$EC2_HOST" << 'EOF'
-mkdir -p /home/ec2-user/cityflow-project/data/batch
-mkdir -p /home/ec2-user/cityflow-project/data/api/bikes
-mkdir -p /home/ec2-user/cityflow-project/data/api/traffic
-mkdir -p /home/ec2-user/cityflow-project/data/api/weather
+mkdir -p /home/ec2-user/cityflow-project/data/cityflow-raw/raw/batch
+mkdir -p /home/ec2-user/cityflow-project/data/cityflow-raw/raw/api/bikes
+mkdir -p /home/ec2-user/cityflow-project/data/cityflow-raw/raw/api/traffic
+mkdir -p /home/ec2-user/cityflow-project/data/cityflow-raw/raw/api/weather
 mkdir -p /home/ec2-user/cityflow-project/output/{metrics,reports,processed}
 mkdir -p /home/ec2-user/cityflow-project/logs
 EOF
@@ -136,7 +136,7 @@ for file in "${BATCH_FILES[@]}"; do
         FILE_SIZE=$(du -h "$LOCAL_FILE" | cut -f1)
         info "Upload: $file ($FILE_SIZE)..."
         
-        if scp -i "$KEY_PATH" -o StrictHostKeyChecking=no "$LOCAL_FILE" "$EC2_HOST:$PROJECT_DIR/data/batch/"; then
+        if scp -i "$KEY_PATH" -o StrictHostKeyChecking=no "$LOCAL_FILE" "$EC2_HOST:$PROJECT_DIR/data/cityflow-raw/raw/batch/"; then
             success "$file uploadé"
         else
             warning "Erreur upload $file"
@@ -170,7 +170,7 @@ else
         info "Upload bikes (dt=$API_DATE)..."
         scp -i "$KEY_PATH" -o StrictHostKeyChecking=no -r \
             "$LOCAL_DATA_DIR/api/bikes/dt=$API_DATE" \
-            "$EC2_HOST:$PROJECT_DIR/data/api/bikes/" && \
+            "$EC2_HOST:$PROJECT_DIR/data/cityflow-raw/raw/api/bikes/" && \
         success "Bikes uploadé"
     else
         warning "Pas de données bikes pour $API_DATE"
@@ -181,7 +181,7 @@ else
         info "Upload traffic (dt=$API_DATE)..."
         scp -i "$KEY_PATH" -o StrictHostKeyChecking=no -r \
             "$LOCAL_DATA_DIR/api/traffic/dt=$API_DATE" \
-            "$EC2_HOST:$PROJECT_DIR/data/api/traffic/" && \
+            "$EC2_HOST:$PROJECT_DIR/data/cityflow-raw/raw/api/traffic/" && \
         success "Traffic uploadé"
     else
         warning "Pas de données traffic pour $API_DATE"
@@ -192,7 +192,7 @@ else
         info "Upload weather (dt=$API_DATE)..."
         scp -i "$KEY_PATH" -o StrictHostKeyChecking=no -r \
             "$LOCAL_DATA_DIR/api/weather/dt=$API_DATE" \
-            "$EC2_HOST:$PROJECT_DIR/data/api/weather/" && \
+            "$EC2_HOST:$PROJECT_DIR/data/cityflow-raw/raw/api/weather/" && \
         success "Weather uploadé"
     else
         warning "Pas de données weather pour $API_DATE"
@@ -212,16 +212,16 @@ echo ""
 
 ssh -i "$KEY_PATH" "$EC2_HOST" << 'EOF'
 echo "📁 Fichiers Batch:"
-ls -lh /home/ec2-user/cityflow-project/data/batch/ 2>/dev/null || echo "  (vide)"
+ls -lh /home/ec2-user/cityflow-project/data/cityflow-raw/raw/batch/ 2>/dev/null || echo "  (vide)"
 echo ""
 echo "📁 Fichiers API - Bikes:"
-find /home/ec2-user/cityflow-project/data/api/bikes/ -type f 2>/dev/null | head -3 || echo "  (vide)"
+find /home/ec2-user/cityflow-project/data/cityflow-raw/raw/api/bikes/ -type f 2>/dev/null | head -3 || echo "  (vide)"
 echo ""
 echo "📁 Fichiers API - Traffic:"
-find /home/ec2-user/cityflow-project/data/api/traffic/ -type f 2>/dev/null | head -3 || echo "  (vide)"
+find /home/ec2-user/cityflow-project/data/cityflow-raw/raw/api/traffic/ -type f 2>/dev/null | head -3 || echo "  (vide)"
 echo ""
 echo "📁 Fichiers API - Weather:"
-find /home/ec2-user/cityflow-project/data/api/weather/ -type f 2>/dev/null | head -3 || echo "  (vide)"
+find /home/ec2-user/cityflow-project/data/cityflow-raw/raw/api/weather/ -type f 2>/dev/null | head -3 || echo "  (vide)"
 EOF
 
 echo ""

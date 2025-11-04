@@ -145,7 +145,10 @@ DYNAMODB_REPORTS_TABLE=cityflow-reports
 S3_REPORTS_BUCKET=cityflow-reports-paris
 S3_REPORTS_PREFIX=reports
 
-# Chemins locaux
+# Chemins locaux (sur EC2)
+DATA_DIR=/home/ec2-user/cityflow-project/data
+BATCH_DATA_PATH=/home/ec2-user/cityflow-project/data/cityflow-raw/raw/batch
+API_DATA_PATH=/home/ec2-user/cityflow-project/data/cityflow-raw/raw/api
 OUTPUT_DIR=/home/ec2-user/cityflow-project/output
 ```
 
