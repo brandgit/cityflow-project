@@ -45,13 +45,16 @@ def load_raw_data(config) -> Dict[str, Any]:
     """
     import os
     
-    # Détecter si on doit utiliser S3
-    use_s3 = os.getenv("USE_S3", "false").lower() == "true" or os.getenv("AWS_EXECUTION_ENV")
+    # FORCER la lecture depuis S3 en production
+    # Détection : si on est sur EC2 (pas de bucket-cityflow local)
+    local_bucket = Path("bucket-cityflow-paris-s3-raw")
     
-    if use_s3:
-        print("📦 Chargement des données depuis S3...")
+    if not local_bucket.exists():
+        # On est sur EC2 → Lire depuis S3
+        print("📦 Chargement des données depuis S3 (mode EC2)...")
         return load_raw_data_from_s3(config)
     else:
+        # On est en local → Lire depuis fichiers
         print("📁 Chargement des données depuis fichiers locaux...")
         return load_raw_data_local(config)
 

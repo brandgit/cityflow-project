@@ -142,16 +142,18 @@ LOG_FORMAT = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 
 # Configuration AWS - Variables d'environnement
 
-# DynamoDB Tables
-DYNAMODB_METRICS_TABLE = os.getenv("DYNAMODB_METRICS_TABLE", "cityflow-metrics")
-DYNAMODB_REPORTS_TABLE = os.getenv("DYNAMODB_REPORTS_TABLE", "cityflow-daily-reports")
+# DynamoDB Tables EN DUR
+DYNAMODB_METRICS_TABLE = "cityflow-metrics"
+DYNAMODB_REPORTS_TABLE = "cityflow-reports"
 
-# S3 Buckets
-S3_REPORTS_BUCKET = os.getenv("S3_REPORTS_BUCKET", "cityflow-reports")
-S3_REPORTS_PREFIX = os.getenv("S3_REPORTS_PREFIX", "reports")
+# S3 Buckets EN DUR
+S3_REPORTS_BUCKET = "cityflow-reports-paris"
+S3_REPORTS_PREFIX = "reports"
+S3_RAW_BUCKET = "bucket-cityflow-paris-s3-raw"
+S3_RAW_PREFIX = "cityflow-raw/raw"
 
-# AWS Region
-AWS_REGION = os.getenv("AWS_REGION", "eu-west-3")
+# AWS Region EN DUR
+AWS_REGION = "eu-west-3"
 
 # Configuration DynamoDB (ancien format, conservé pour compatibilité)
 DYNAMODB_TABLES = {
